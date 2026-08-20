@@ -1,0 +1,7 @@
+interface:
+  display_name: "中国大学生创新创业竞赛项目辅导助手"
+  short_description: "按赛事规则和项目证据优化计划书与答辩材料"
+  brand_color: "#0F766E"
+  default_prompt: "使用 $cn-innovation-competition-mentor，先扫描当前项目目录，再按赛事评分要求优化本项目的商业计划书或答辩PPT。"
+policy:
+  allow_implicit_invocation: true

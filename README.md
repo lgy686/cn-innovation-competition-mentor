@@ -162,6 +162,83 @@ git clone https://github.com/lgy686/cn-innovation-competition-mentor.git "$env:U
 git pull
 ```
 
+## 维护指南：修改内容与文件对应关系
+
+不同文件承担不同职责。`SKILL.md` 和 `references/` 决定 Codex 实际如何执行任务；`README.md` 主要面向 GitHub 用户说明使用方法；`agents/openai.yaml` 负责界面信息和调用策略；`scripts/` 只处理确定性自动化。
+
+### 入口、触发和界面
+
+| 想修改的内容 | 应修改的文件 | 说明 |
+|---|---|---|
+| Skill 名称 | `SKILL.md` 顶部的 `name`，以及技能目录名 | 名称必须使用小写字母、数字和连字符；改名还需同步所有调用示例 |
+| 自动触发关键词、适用范围和排除边界 | `SKILL.md` 顶部的 `description` | 这是 Skill 选择阶段最重要的触发描述，应保持简短且有区分度 |
+| 全局原则、入口流程、任务路由或交付边界 | `SKILL.md` 正文 | 只放所有任务都需要了解的规则，不要把所有细节重新塞回入口文件 |
+| Codex 中显示的中文名称 | `agents/openai.yaml` 的 `interface.display_name` | 只影响界面显示，不改变 Skill 的执行逻辑 |
+| Skill 列表中的简短说明 | `agents/openai.yaml` 的 `interface.short_description` | 应与 `SKILL.md` 的实际能力一致 |
+| 点击 Skill 后出现的默认提示词 | `agents/openai.yaml` 的 `interface.default_prompt` | 提示词必须显式包含 `$cn-innovation-competition-mentor` |
+| 是否允许自动调用 | `agents/openai.yaml` 的 `policy.allow_implicit_invocation` | `true` 允许自动匹配；`false` 时通常需要用户显式调用 |
+| GitHub 首页的介绍、安装和使用示例 | `README.md` | 单独修改 README 不会改变 Skill 的实际行为 |
+
+### 详细业务规则
+
+| 想修改的内容 | 应修改的文件 |
+|---|---|
+| 信息优先级、事实状态词、案例使用边界 | `references/source-priority.md` |
+| 首次扫描、文件分类和项目接收流程 | `references/project-intake.md` |
+| 赛事方案、评分标准、赛道和硬性约束分析 | `references/competition-rules-analysis.md` |
+| 证据等级、成果核验和口径冲突处理 | `references/evidence-matrix.md` |
+| 获奖案例页面替换的步骤、表格和文字长度控制 | `references/ppt-case-replacement.md` |
+| 初版 PPT 逐页分析和案例化优化方法 | `references/ppt-polishing.md` |
+| 商业计划书章节组织、篇幅和写作风格 | `references/business-plan-writing.md` |
+| Word 样式、标题、图注、表注和表格格式 | `references/word-formatting.md` |
+| 商业数据来源、缺失数据和可编辑图表要求 | `references/charts-and-data.md` |
+| 技术路线、商业闭环等 AI 绘图提示词要求 | `references/image-prompt-generation.md` |
+| 联网检索的来源优先级和引用记录 | `references/web-research.md` |
+| 最终交付前的赛事、证据、PPT 和 Word 检查项 | `references/quality-checklist.md` |
+
+### 自动化脚本
+
+| 想修改的内容 | 应修改的文件 |
+|---|---|
+| 文件清单、忽略目录、关键词初步分类 | `scripts/inventory_project.py` |
+| Office/PDF/Markdown 元数据提取 | `scripts/extract_project_metadata.py` |
+| DOCX/PPTX 结构与编号检查 | `scripts/validate_document.py` |
+
+脚本不应代替赛事规则理解、事实可信度判断、页面视觉分析或商业写作。只有可重复、可机械判断的任务才适合放入 `scripts/`。
+
+### 新增一种工作模式
+
+如果以后新增一种相对独立的能力，例如“答辩稿撰写”或“申报书逐项填写”，建议按以下方式维护：
+
+1. 在 `references/` 新建对应的 Markdown 文件，将详细流程写入其中。
+2. 在 `SKILL.md` 的“工作流路由”中说明什么情况下读取该文件。
+3. 如果新能力改变了触发范围，再简洁更新 `SKILL.md` 顶部的 `description`。
+4. 在 README 中补充面向用户的说明和调用示例，但不要用 README 代替运行规则。
+
+### 修改后的检查与发布
+
+修改完成后，先运行 Skill 结构验证：
+
+```powershell
+$python = "C:\Users\LGY\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
+$env:PYTHONUTF8 = "1"
+
+& $python `
+  "C:\Users\LGY\.codex\skills\.system\skill-creator\scripts\quick_validate.py" `
+  "C:\Users\LGY\.codex\skills\cn-innovation-competition-mentor"
+```
+
+如果修改了 Python 脚本，还应进行编译检查并实际运行对应脚本。验证通过后提交到 GitHub：
+
+```powershell
+cd C:\Users\LGY\.codex\skills\cn-innovation-competition-mentor
+git add .
+git commit -m "Update skill requirements"
+git push origin main
+```
+
+修改规则时尽量只改负责该规则的文件，避免在 `SKILL.md`、reference 和 README 中重复维护同一套详细指令。若某项规则需要每次调用都生效，应放在 `SKILL.md`；若只在特定任务中使用，应放在相应 reference。
+
 ## 项目结构
 
 ```text
